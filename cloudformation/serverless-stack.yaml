@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Serverless Inventory System
+
+Resources:
+
+  InventoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: InventoryTable
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lambda-inventory-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  ProcessInventoryFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: processInventory
+      Runtime: python3.11
+      Handler: process_inventory.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 10
+      MemorySize: 128
+      Code:
+        S3Bucket: REPLACE_WITH_YOUR_BUCKET
+        S3Key: function.zip
+
+Outputs:
+
+  LambdaFunctionArn:
+    Value: !GetAtt ProcessInventoryFunction.Arn
+    Description: ARN of the Lambda function
+
+  DynamoDBTableName:
+    Value: !Ref InventoryTable
+    Description: DynamoDB table for inventory
