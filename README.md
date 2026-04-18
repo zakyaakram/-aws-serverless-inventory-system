@@ -22,6 +22,3 @@ Cognito
 4. Data stored in DynamoDB
 5. SNS sends notification
 
-## Author
-
-Ali Salah
